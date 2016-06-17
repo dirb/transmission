@@ -57,7 +57,7 @@ class RpcClient: public QObject
 
     void stop ();
     void start (tr_session * session);
-    void start (const QUrl& url);
+    void start (const QUrl& url, bool anyCert = false);
 
     bool isLocal () const;
     const QUrl& url () const;
@@ -94,5 +94,6 @@ class RpcClient: public QObject
     QNetworkAccessManager * myNAM;
     QHash<int64_t, QFutureInterface<RpcResponse>> myLocalRequests;
     int64_t myNextTag;
+    bool sslNoVerify;
 };
 
