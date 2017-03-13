@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #pragma once
@@ -12,11 +11,11 @@
 #include <QWidget>
 
 class QLabel;
+class QLineEdit;
 class QStandardItemModel;
 class QTimer;
 
 class FilterBarComboBox;
-class FilterBarLineEdit;
 class Prefs;
 class TorrentFilter;
 class TorrentModel;
@@ -57,6 +56,6 @@ class FilterBar: public QWidget
     QStandardItemModel * myTrackerModel;
     QTimer * myRecountTimer;
     bool myIsBootstrapping;
-    FilterBarLineEdit * myLineEdit;
+    QLineEdit * myLineEdit;
 };
 

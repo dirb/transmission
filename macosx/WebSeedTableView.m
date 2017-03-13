@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- * 
  * Copyright (c) 2012 Transmission authors and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -44,9 +42,9 @@
     [fWebSeeds enumerateObjectsAtIndexes: indexes options: 0 usingBlock: ^(NSDictionary * webSeed, NSUInteger idx, BOOL * stop) {
         [addresses addObject: [webSeed objectForKey: @"Address"]];
     }];
-    
+
     NSString * text = [addresses componentsJoinedByString: @"\n"];
-    
+
     NSPasteboard * pb = [NSPasteboard generalPasteboard];
     [pb clearContents];
     [pb writeObjects: [NSArray arrayWithObject: text]];
@@ -55,10 +53,10 @@
 - (BOOL) validateMenuItem: (NSMenuItem *) menuItem
 {
     const SEL action = [menuItem action];
-    
+
     if (action == @selector(copy:))
         return [self numberOfSelectedRows] > 0;
-    
+
     return YES;
 }
 

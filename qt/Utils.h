@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #pragma once
@@ -19,11 +18,14 @@ class QAbstractItemView;
 class QColor;
 class QHeaderView;
 class QIcon;
+class QModelIndex;
 
 class Utils
 {
   public:
     static QIcon guessMimeIcon (const QString& filename);
+    static QIcon getIconFromIndex (const QModelIndex& index);
+
     // Test if string is UTF-8 or not
     static bool isValidUtf8 (const char * s);
 

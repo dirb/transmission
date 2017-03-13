@@ -10,18 +10,14 @@ endif()
 
 set(VERSION "${TR_USER_AGENT_PREFIX}")
 set(VERSION_MSI "${TR_VERSION_MAJOR}.${TR_VERSION_MINOR}.0")
-set(VERSION_FULL "${TR_USER_AGENT_PREFIX} (${TR_SCM_REVISION})")
+set(VERSION_FULL "${TR_USER_AGENT_PREFIX} (${TR_VCS_REVISION})")
 
 if(NOT TR_THIRD_PARTY_DIR)
     set(TR_THIRD_PARTY_DIR "$<TARGET_FILE_DIR:OpenSSL::SSL>/..")
 endif()
 
 if(NOT TR_QT_DIR)
-    if(USE_QT5)
-        set(TR_QT_DIR "$<TARGET_FILE_DIR:Qt5::Core>/..")
-    else()
-        set(TR_QT_DIR "$<TARGET_FILE_DIR:Qt4::Core>/..")
-    endif()
+    set(TR_QT_DIR "$<TARGET_FILE_DIR:Qt5::Core>/..")
 endif()
 
 set(ICONS_DIR "${CMAKE_SOURCE_DIR}/qt/icons/hicolor")
@@ -76,7 +72,7 @@ wix_candle(${PROJECT_NAME}_OBJS
 
 wix_light(${PROJECT_NAME}_OUTPUT
     NAME
-        transmission-${VERSION}-r${TR_SCM_REVISION}-${ARCH}
+        transmission-${VERSION}-r${TR_VCS_REVISION}-${ARCH}
     OBJECTS
         ${${PROJECT_NAME}_OBJS}
     EXTENSIONS

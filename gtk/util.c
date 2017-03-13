@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #include <ctype.h> /* isxdigit () */
@@ -353,7 +352,7 @@ gtr_get_help_uri (void)
 
   if (!uri)
     {
-      const char * fmt = "http://www.transmissionbt.com/help/gtk/%d.%dx";
+      const char * fmt = "https://transmissionbt.com/help/gtk/%d.%dx";
       uri = g_strdup_printf (fmt, MAJOR_VERSION, MINOR_VERSION / 10);
     }
 

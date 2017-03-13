@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #pragma once
@@ -129,6 +128,8 @@ class Session: public QObject
     tr_session_stats myStats;
     tr_session_stats myCumulativeStats;
     QString mySessionVersion;
+    QString mySessionId;
+    bool myIsDefinitelyLocalSession;
     RpcClient myRpc;
 };
 

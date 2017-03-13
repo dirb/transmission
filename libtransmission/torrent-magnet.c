@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #include <assert.h>
@@ -295,6 +294,7 @@ tr_torrentSetMetadataPiece (tr_torrent  * tor, int piece, const void  * data, in
                   if (success && !tr_getBlockSize (info.pieceSize))
                     {
                       tr_torrentSetLocalError (tor, "%s", _("Magnet torrent's metadata is not usable"));
+                      tr_metainfoFree (&info);
                       success = false;
                     }
 

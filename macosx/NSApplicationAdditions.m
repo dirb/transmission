@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Copyright (c) 2009-2012 Transmission authors and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -25,11 +23,6 @@
 #import "NSApplicationAdditions.h"
 
 @implementation NSApplication (NSApplicationAdditions)
-
-- (BOOL) isOnMountainLionOrBetter
-{
-    return floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_7;
-}
 
 - (BOOL) isOnYosemiteOrBetter
 {

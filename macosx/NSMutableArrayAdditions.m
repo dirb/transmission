@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Copyright (c) 2011-2012 Transmission authors and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -35,9 +33,9 @@
 {
     if (fromIndex == toIndex)
         return;
-    
+
     id object = [[self objectAtIndex: fromIndex] retain];
-    
+
     //shift objects - more efficient than simply removing the object and re-inserting the object
     if (fromIndex < toIndex)
     {
@@ -50,7 +48,7 @@
             [self replaceObjectAtIndex: i withObject: [self objectAtIndex: i-1]];
     }
     [self replaceObjectAtIndex: toIndex withObject: object];
-    
+
     [object release];
 }
 

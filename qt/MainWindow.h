@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #pragma once
@@ -26,6 +25,7 @@
 class QAction;
 class QIcon;
 class QMenu;
+class QStringList;
 
 class AboutDialog;
 class AddData;
@@ -88,6 +88,7 @@ class MainWindow: public QMainWindow
 
   private:
     QIcon getStockIcon (const QString&, int fallback = -1);
+    QIcon getStockIcon (const QString&, int fallback, const QStringList& emblemNames);
 
     QSet<int> getSelectedTorrents (bool withMetadataOnly = false) const;
     void updateNetworkIcon ();

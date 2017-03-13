@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #include <assert.h>
@@ -83,6 +82,16 @@ torrentRenameAndWait (tr_torrent * tor,
     tr_wait_msec (10);
   } while (error == -1);
   return error;
+}
+
+static void
+torrentRemoveAndWait (tr_torrent * tor,
+                      int          expected_torrent_count)
+{
+  tr_torrentRemove (tor, false, NULL);
+
+  while (tr_sessionCountTorrents (session) != expected_torrent_count)
+    tr_wait_msec (10);
 }
 
 /***
@@ -222,7 +231,7 @@ test_single_filename_torrent (void)
 
   /* cleanup */
   tr_ctorFree (ctor);
-  tr_torrentRemove (tor, false, NULL);
+  torrentRemoveAndWait (tor, 0);
   return 0;
 }
 
@@ -436,15 +445,13 @@ test_multifile_torrent (void)
       testFileExistsAndConsistsOfThisString (tor, i, expected_contents[i]);
     }
 
+  tr_ctorFree (ctor);
+  torrentRemoveAndWait (tor, 0);
+
   /**
   ***  Test renaming prefixes (shouldn't work)
   **/
 
-  tr_ctorFree (ctor);
-  tr_torrentRemove (tor, false, NULL);
-  do {
-    tr_wait_msec (10);
-  } while (0);
   ctor = tr_ctorNew (session);
   tor = create_torrent_from_base64_metainfo (ctor,
     "ZDEwOmNyZWF0ZWQgYnkyNTpUcmFuc21pc3Npb24vMi42MSAoMTM0MDcpMTM6Y3JlYXRpb24gZGF0"
@@ -480,7 +487,7 @@ test_multifile_torrent (void)
 
   /* cleanup */
   tr_ctorFree (ctor);
-  tr_torrentRemove (tor, false, NULL);
+  torrentRemoveAndWait (tor, 0);
   return 0;
 }
 
@@ -547,7 +554,7 @@ test_partial_file (void)
       tr_free (expected);
     }
 
-  tr_torrentRemove (tor, false, NULL);
+  torrentRemoveAndWait (tor, 0);
   return 0;
 }
 

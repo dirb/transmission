@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Copyright (c) Transmission authors and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -1363,9 +1361,10 @@ update_model_loop (gpointer gdata)
 static void
 show_about_dialog (GtkWindow * parent)
 {
-  const char * uri = "http://www.transmissionbt.com/";
+  const char * uri = "https://transmissionbt.com/";
   const char * authors[] = { "Jordan Lee (Backend; GTK+)",
                              "Mitchell Livingston (Backend; OS X)",
+                             "Mike Gelfand",
                              NULL };
 
   gtk_show_about_dialog (parent,
@@ -1547,7 +1546,7 @@ gtr_actions_handler (const char * action_name, gpointer user_data)
     }
   else if (g_strcmp0 (action_name, "donate") == 0)
     {
-      gtr_open_uri ("http://www.transmissionbt.com/donate.php");
+      gtr_open_uri ("https://transmissionbt.com/donate/");
     }
   else if (g_strcmp0 (action_name, "pause-all-torrents") == 0)
     {

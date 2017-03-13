@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Copyright (c) 2006-2012 Transmission authors and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -24,7 +22,7 @@
 
 #import "PortChecker.h"
 
-#define CHECKER_URL(port) [NSString stringWithFormat: @"http://portcheck.transmissionbt.com/%ld", port]
+#define CHECKER_URL(port) [NSString stringWithFormat: @"https://portcheck.transmissionbt.com/%ld", port]
 #define CHECK_FIRE 3.0
 
 @interface PortChecker (Private)
@@ -42,14 +40,14 @@
     if ((self = [super init]))
     {
         fDelegate = delegate;
-        
+
         fStatus = PORT_STATUS_CHECKING;
-        
+
         fTimer = [[NSTimer scheduledTimerWithTimeInterval: CHECK_FIRE target: self selector: @selector(startProbe:) userInfo: [NSNumber numberWithInteger: portNumber] repeats: NO] retain];
         if (!delay)
             [fTimer fire];
     }
-    
+
     return self;
 }
 
@@ -57,7 +55,7 @@
 {
     [fTimer invalidate];
     [fTimer release];
-    
+
     [fConnection release];
     [fPortProbeData release];
     [super dealloc];
@@ -73,7 +71,7 @@
     [fTimer invalidate];
     [fTimer release];
     fTimer = nil;
-    
+
     [fConnection cancel];
 }
 
@@ -98,7 +96,7 @@
     NSString * probeString = [[NSString alloc] initWithData: fPortProbeData encoding: NSUTF8StringEncoding];
     [fPortProbeData release];
     fPortProbeData = nil;
-    
+
     if (probeString)
     {
         if ([probeString isEqualToString: @"1"])
@@ -127,10 +125,10 @@
 {
     [fTimer release];
     fTimer = nil;
-    
+
     NSURLRequest * portProbeRequest = [NSURLRequest requestWithURL: [NSURL URLWithString: CHECKER_URL([[timer userInfo] integerValue])]
                                         cachePolicy: NSURLRequestReloadIgnoringLocalAndRemoteCacheData timeoutInterval: 15.0];
-    
+
     if ((fConnection = [[NSURLConnection alloc] initWithRequest: portProbeRequest delegate: self]))
         fPortProbeData = [[NSMutableData alloc] init];
     else
@@ -143,7 +141,7 @@
 - (void) callBackWithStatus: (port_status_t) status
 {
     fStatus = status;
-    
+
     if (fDelegate && [fDelegate respondsToSelector: @selector(portCheckerDidFinishProbing:)])
         [fDelegate performSelectorOnMainThread: @selector(portCheckerDidFinishProbing:) withObject: self waitUntilDone: NO];
 }

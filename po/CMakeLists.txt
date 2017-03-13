@@ -6,7 +6,6 @@ set(${PROJECT_NAME}_LINGUAS
     ast
     az
     be
-    be@latin
     bg
     bn
     bo
@@ -17,6 +16,7 @@ set(${PROJECT_NAME}_LINGUAS
     ceb
     ckb
     cs
+    cy
     da
     de
     el
@@ -32,6 +32,7 @@ set(${PROJECT_NAME}_LINGUAS
     fil
     fo
     fr
+    fr_CA
     ga
     gl
     gv
@@ -45,6 +46,7 @@ set(${PROJECT_NAME}_LINGUAS
     is
     it
     ja
+    jbo
     ka
     kk
     ko
@@ -88,6 +90,7 @@ set(${PROJECT_NAME}_LINGUAS
     uz
     vi
     zh_CN
+    zh_HK
     zh_TW
 )
 

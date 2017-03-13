@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #define _XOPEN_SOURCE 600  /* needed for recursive locks. */
@@ -99,11 +98,16 @@ tr_amInThread (const tr_thread * t)
 static ThreadFuncReturnType
 ThreadFunc (void * _t)
 {
+#ifndef _WIN32
+  pthread_detach (pthread_self ());
+#endif
+
   tr_thread * t = _t;
 
   t->func (t->arg);
 
   tr_free (t);
+
 #ifdef _WIN32
   _endthreadex (0);
   return 0;
@@ -126,7 +130,6 @@ tr_threadNew (void (*func)(void *), void * arg)
   }
 #else
   pthread_create (&t->thread, NULL, (void* (*)(void*))ThreadFunc, t);
-  pthread_detach (t->thread);
 #endif
 
   return t;
@@ -225,19 +228,24 @@ tr_lockUnlock (tr_lock * l)
 #ifdef _WIN32
 
 static char *
-win32_get_known_folder (REFKNOWNFOLDERID folder_id)
+win32_get_known_folder_ex (REFKNOWNFOLDERID folder_id, DWORD flags)
 {
   char * ret = NULL;
   PWSTR path;
 
-  if (SHGetKnownFolderPath (folder_id, KF_FLAG_DONT_UNEXPAND | KF_FLAG_DONT_VERIFY,
-                            NULL, &path) == S_OK)
+  if (SHGetKnownFolderPath (folder_id, flags | KF_FLAG_DONT_UNEXPAND, NULL, &path) == S_OK)
     {
       ret = tr_win32_native_to_utf8 (path, -1);
       CoTaskMemFree (path);
     }
 
   return ret;
+}
+
+static char *
+win32_get_known_folder (REFKNOWNFOLDERID folder_id)
+{
+  return win32_get_known_folder_ex (folder_id, KF_FLAG_DONT_VERIFY);
 }
 
 #endif
@@ -389,7 +397,7 @@ tr_getDefaultDownloadDir (void)
                 {
                   *end = '\0';
 
-                  if (memcmp (value, "$HOME/", 6) == 0)
+                  if (strncmp (value, "$HOME/", 6) == 0)
                     user_dir = tr_buildPath (getHomeDir (), value+6, NULL);
                   else if (strcmp (value, "$HOME") == 0)
                     user_dir = tr_strdup (getHomeDir ());
@@ -512,12 +520,15 @@ tr_getWebClientDir (const tr_session * session UNUSED)
                 module_path = tr_win32_native_to_utf8 (wide_module_path, -1);
                 dir = tr_sys_path_dirname (module_path, NULL);
                 tr_free (module_path);
-                s = tr_buildPath (dir, "Web", NULL);
-                tr_free (dir);
-                if (!isWebClientDir (s))
+                if (dir != NULL)
                   {
-                    tr_free (s);
-                    s = NULL;
+                    s = tr_buildPath (dir, "Web", NULL);
+                    tr_free (dir);
+                    if (!isWebClientDir (s))
+                      {
+                        tr_free (s);
+                        s = NULL;
+                      }
                   }
             }
 
@@ -586,4 +597,22 @@ tr_getWebClientDir (const tr_session * session UNUSED)
     }
 
   return s;
+}
+
+char *
+tr_getSessionIdDir (void)
+{
+#ifndef _WIN32
+
+  return tr_strdup ("/tmp");
+
+#else
+
+  char * program_data_dir = win32_get_known_folder_ex (&FOLDERID_ProgramData, KF_FLAG_CREATE);
+  char * result = tr_buildPath (program_data_dir, "Transmission", NULL);
+  tr_free (program_data_dir);
+  tr_sys_dir_create (result, 0, 0, NULL);
+  return result;
+
+#endif
 }

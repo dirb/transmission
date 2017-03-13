@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Copyright (c) 2008-2012 Transmission authors and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -29,7 +27,7 @@
 @interface FileListNode : NSObject <NSCopying>
 {
     NSMutableIndexSet * fIndexes;
-    
+
     NSString * fName;
     NSString * fPath;
     Torrent * fTorrent;

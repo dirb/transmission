@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Copyright (c) Transmission authors and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -126,6 +124,8 @@ void gtr_core_add_torrent (TrCore*, tr_torrent*, gboolean do_notify);
  * This should be called after one or more tr_core_add* () calls.
  */
 void gtr_core_torrents_added (TrCore * self);
+
+void gtr_core_torrent_changed (TrCore * self, int id);
 
 /******
 *******

@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #include <QApplication>
@@ -46,7 +45,8 @@ AboutDialog::showCredits ()
     this,
     tr ("Credits"),
     QString::fromUtf8 ("Jordan Lee (Backend; Daemon; GTK+; Qt)\n"
-                        "Michell Livingston (OS X)\n"));
+                        "Mitchell Livingston (OS X)\n"
+                        "Mike Gelfand\n"));
 }
 
 void

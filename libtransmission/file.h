@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #pragma once
@@ -76,6 +75,15 @@ typedef enum
   TR_SEEK_END
 }
 tr_seek_origin_t;
+
+typedef enum
+{
+  TR_SYS_FILE_LOCK_SH = 1 << 0,
+  TR_SYS_FILE_LOCK_EX = 1 << 1,
+  TR_SYS_FILE_LOCK_NB = 1 << 2,
+  TR_SYS_FILE_LOCK_UN = 1 << 3
+}
+tr_sys_file_lock_flags_t;
 
 typedef enum
 {
@@ -523,6 +531,23 @@ void          * tr_sys_file_map_for_reading (tr_sys_file_t        handle,
  */
 bool            tr_sys_file_unmap           (const void         * address,
                                              uint64_t             size,
+                                             struct tr_error   ** error);
+
+/**
+ * @brief Portability wrapper for `flock ()`.
+ *
+ * Don't try to upgrade or downgrade the lock unless you know what you are
+ * doing, as behavior varies a bit between platforms.
+ *
+ * @param[in]  handle    Valid file descriptor.
+ * @param[in]  operation Combination of @ref tr_sys_file_lock_flags_t values.
+ * @param[out] error     Pointer to error object. Optional, pass `NULL` if you
+ *                       are not interested in error details.
+ *
+ * @return `True` on success, `false` otherwise (with `error` set accordingly).
+ */
+bool            tr_sys_file_lock            (tr_sys_file_t        handle,
+                                             int                  operation,
                                              struct tr_error   ** error);
 
 /* File-related wrappers (utility) */

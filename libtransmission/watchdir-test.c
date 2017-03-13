@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #include <event2/event.h>
@@ -127,6 +126,8 @@ test_construct (void)
   wd = create_watchdir (test_dir, &callback, NULL, ev_base);
   check (wd != NULL);
   check (tr_sys_path_is_same (test_dir, tr_watchdir_get_path (wd), NULL));
+
+  process_events ();
 
   tr_watchdir_free (wd);
 

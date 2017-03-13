@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Copyright (c) 2006-2012 Transmission authors and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -29,8 +27,8 @@
 @class FileListNode;
 
 typedef enum {
-	TorrentDeterminationAutomatic = 0,
-	TorrentDeterminationUserSpecified
+    TorrentDeterminationAutomatic = 0,
+    TorrentDeterminationUserSpecified
 } TorrentDeterminationType;
 
 #define kTorrentDidChangeGroupNotification @"TorrentDidChangeGroup"
@@ -40,28 +38,28 @@ typedef enum {
     tr_torrent * fHandle;
     const tr_info * fInfo;
     const tr_stat * fStat;
-	
+
     NSUserDefaults * fDefaults;
 
     NSImage * fIcon;
-    
+
     NSString * fHashString;
-    
+
     tr_file_stat * fFileStat;
     NSArray * fFileList, * fFlatFileList;
-    
+
     NSIndexSet * fPreviousFinishedIndexes;
     NSDate * fPreviousFinishedIndexesDate;
-    
+
     BOOL fRemoveWhenFinishSeeding;
-    
+
     NSInteger fGroupValue;
-	TorrentDeterminationType fGroupValueDetermination;
-	
-	TorrentDeterminationType fDownloadFolderDetermination;
-    
+    TorrentDeterminationType fGroupValueDetermination;
+
+    TorrentDeterminationType fDownloadFolderDetermination;
+
     BOOL fResumeOnWake;
-    
+
     BOOL fTimeMachineExcludeInitialized;
 }
 

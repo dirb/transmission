@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Copyright (c) 2011-2012 Transmission authors and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -48,30 +46,30 @@
     NSInteger count = 0;
     NSRect gridRects[2];
     NSColor * colorRects[2];
-    
+
     NSRect lineBorderRect = NSMakeRect(NSMinX(rect), NSHeight([self bounds]) - 1.0, NSWidth(rect), 1.0);
     if (NSIntersectsRect(lineBorderRect, rect))
     {
         gridRects[count] = lineBorderRect;
         colorRects[count] = [NSColor grayColor];
         ++count;
-        
+
         rect.size.height -= 1.0;
     }
-    
+
     lineBorderRect.origin.y = 0.0;
     if (NSIntersectsRect(lineBorderRect, rect))
     {
         gridRects[count] = lineBorderRect;
         colorRects[count] = [NSColor grayColor];
         ++count;
-        
+
         rect.origin.y += 1.0;
         rect.size.height -= 1.0;
     }
-    
+
     NSRectFillListWithColors(gridRects, colorRects, count);
-    
+
     [fGradient drawInRect: rect angle: 270.0];
 }
 

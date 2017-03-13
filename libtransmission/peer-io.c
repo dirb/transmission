@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #include <assert.h>
@@ -626,7 +625,7 @@ tr_peerIoNew (tr_session       * session,
     tr_bandwidthConstruct (&io->bandwidth, session, parent);
     tr_bandwidthSetPeer (&io->bandwidth, io);
     dbgmsg (io, "bandwidth is %p; its parent is %p", (void*)&io->bandwidth, (void*)parent);
-    dbgmsg (io, "socket is %"TR_PRI_SOCK", utp_socket is %p", socket, (void*)utp_socket);
+    dbgmsg (io, "socket is %" PRIdMAX ", utp_socket is %p", (intmax_t) socket, (void*)utp_socket);
 
     if (io->socket != TR_BAD_SOCKET) {
         io->event_read = event_new (session->event_base,
@@ -687,7 +686,7 @@ tr_peerIoNewOutgoing (tr_session        * session,
 
     if (!utp_socket) {
         fd = tr_netOpenPeerSocket (session, addr, port, isSeed);
-        dbgmsg (NULL, "tr_netOpenPeerSocket returned fd %"TR_PRI_SOCK, fd);
+        dbgmsg (NULL, "tr_netOpenPeerSocket returned fd %" PRIdMAX, (intmax_t) fd);
     }
 
     if (fd == TR_BAD_SOCKET && utp_socket == NULL)

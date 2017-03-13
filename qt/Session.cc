@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #include <cassert>
@@ -23,6 +22,7 @@
 #include <QTextStream>
 
 #include <libtransmission/transmission.h>
+#include <libtransmission/session-id.h>
 #include <libtransmission/utils.h> // tr_free
 #include <libtransmission/variant.h>
 
@@ -255,7 +255,8 @@ Session::Session (const QString& configDir, Prefs& prefs):
   myConfigDir (configDir),
   myPrefs (prefs),
   myBlocklistSize (-1),
-  mySession (0)
+  mySession (0),
+  myIsDefinitelyLocalSession (true)
 {
   myStats.ratio = TR_RATIO_NA;
   myStats.uploadedBytes = 0;
@@ -348,6 +349,8 @@ Session::isServer () const
 bool
 Session::isLocal () const
 {
+  if (!mySessionId.isEmpty ())
+    return myIsDefinitelyLocalSession;
   return myRpc.isLocal ();
 }
 
@@ -795,6 +798,20 @@ Session::updateInfo (tr_variant * d)
 
   if (tr_variantDictFindStr (d, TR_KEY_version, &str, NULL) && (mySessionVersion != QString::fromUtf8 (str)))
     mySessionVersion = QString::fromUtf8 (str);
+
+  if (tr_variantDictFindStr (d, TR_KEY_session_id, &str, NULL))
+    {
+      const QString sessionId = QString::fromUtf8 (str);
+      if (mySessionId != sessionId)
+        {
+          mySessionId = sessionId;
+          myIsDefinitelyLocalSession = tr_session_id_is_local (str);
+        }
+    }
+  else
+    {
+      mySessionId.clear ();
+    }
 
   //std::cerr << "Session::updateInfo end" << std::endl;
   connect (&myPrefs, SIGNAL (changed (int)), this, SLOT (updatePref (int)));

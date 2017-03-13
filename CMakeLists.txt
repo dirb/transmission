@@ -3,6 +3,8 @@ project(transmission)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
+set(CMAKE_MACOSX_RPATH ON)
+
 include(CheckIncludeFile)
 include(CheckIncludeFiles)
 include(CheckFunctionExists)
@@ -14,6 +16,7 @@ include(TrMacros)
         option(ENABLE_DAEMON        "Build daemon" ON)
 tr_auto_option(ENABLE_GTK           "Build GTK+ client" AUTO)
 tr_auto_option(ENABLE_QT            "Build Qt client" AUTO)
+tr_auto_option(ENABLE_MAC           "Build Mac client" AUTO)
         option(ENABLE_UTILS         "Build utils (create, edit, show)" ON)
         option(ENABLE_CLI           "Build command-line client" OFF)
         option(ENABLE_TESTS         "Build unit tests" ON)
@@ -22,7 +25,6 @@ tr_auto_option(ENABLE_QT            "Build Qt client" AUTO)
         option(ENABLE_NLS           "Enable native language support" ON)
         option(INSTALL_DOC          "Build/install documentation" ON)
         option(INSTALL_LIB          "Install the library" OFF)
-        option(USE_QT5              "Use Qt 5 (instead of default Qt 4)" OFF)
 tr_auto_option(USE_SYSTEM_EVENT2    "Use system event2 library" AUTO)
 tr_auto_option(USE_SYSTEM_DHT       "Use system dht library" AUTO)
 tr_auto_option(USE_SYSTEM_MINIUPNPC "Use system miniupnpc library" AUTO)
@@ -32,6 +34,7 @@ tr_auto_option(USE_SYSTEM_B64       "Use system b64 library" AUTO)
 tr_list_option(WITH_CRYPTO          "Use specified crypto library" AUTO openssl cyassl polarssl)
 tr_auto_option(WITH_INOTIFY         "Enable inotify support (on systems that support it)" AUTO)
 tr_auto_option(WITH_KQUEUE          "Enable kqueue support (on systems that support it)" AUTO)
+tr_auto_option(WITH_LIBAPPINDICATOR "Use libappindicator in GTK+ client" AUTO)
 tr_auto_option(WITH_SYSTEMD         "Add support for systemd startup notification (on systems that support it)" AUTO)
 
 set(TR_NAME ${PROJECT_NAME})
@@ -56,63 +59,41 @@ else()
     set(TR_STABLE_RELEASE 1)
 endif()
 
-set(TR_SCM_REVISION_FILE "${CMAKE_SOURCE_DIR}/REVISION")
-set(TR_SCM_REVISION_RELIABLE ON)
+set(TR_VCS_REVISION_FILE "${CMAKE_SOURCE_DIR}/REVISION")
 
-if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/.svn)
-    if(NOT "$ENV{JENKINS_URL}" STREQUAL "" AND NOT "$ENV{SVN_REVISION}" STREQUAL "")
-        # Jenkins automated build, use the set environment variables to avoid
-        # version mismatches between java's svn and command line's svn
-        set(TR_SCM_REVISION "$ENV{SVN_REVISION}")
-    else()
-        find_package(Subversion)
-        if(Subversion_FOUND)
-            Subversion_WC_INFO(${CMAKE_SOURCE_DIR} TR_SVN)
-            set(TR_SCM_REVISION "${TR_SVN_WC_REVISION}")
-        endif()
-    endif()
+if(NOT "$ENV{JENKINS_URL}" STREQUAL "" AND NOT "$ENV{GIT_COMMIT}" STREQUAL "")
+    set(TR_VCS_REVISION "$ENV{GIT_COMMIT}")
+elseif(NOT "$ENV{TEAMCITY_PROJECT_NAME}" STREQUAL "" AND NOT "$ENV{BUILD_VCS_NUMBER}" STREQUAL "")
+    set(TR_VCS_REVISION "$ENV{BUILD_VCS_NUMBER}")
 elseif(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/.git)
     find_package(Git)
     if(GIT_FOUND)
         execute_process(
             COMMAND
-                ${GIT_EXECUTABLE} rev-list --max-count=1 --abbrev-commit HEAD
+                ${GIT_EXECUTABLE} rev-list --max-count=1 HEAD
             WORKING_DIRECTORY
                 ${CMAKE_SOURCE_DIR}
             OUTPUT_VARIABLE
-                TR_SCM_REVISION
+                TR_VCS_REVISION
             OUTPUT_STRIP_TRAILING_WHITESPACE
         )
     endif()
 endif()
 
-if("${TR_SCM_REVISION}" STREQUAL "" AND EXISTS "${TR_SCM_REVISION_FILE}")
-    file(READ "${TR_SCM_REVISION_FILE}" TR_SCM_REVISION)
-    string(STRIP "${TR_SCM_REVISION}" TR_SCM_REVISION)
+if("${TR_VCS_REVISION}" STREQUAL "" AND EXISTS "${TR_VCS_REVISION_FILE}")
+    file(READ "${TR_VCS_REVISION_FILE}" TR_VCS_REVISION)
 endif()
 
-if("${TR_SCM_REVISION}" STREQUAL "")
-    # Give up and check the source files
-    set(TR_SCM_REVISION 0)
-    set(TR_SCM_REVISION_RELIABLE OFF)
-    file(GLOB_RECURSE TR_ALL_SOURCES RELATIVE ${CMAKE_SOURCE_DIR} *.cc *.[chm] *.po)
-    foreach(F ${TR_ALL_SOURCES})
-        file(STRINGS ${F} F_ID REGEX "\\$Id:")
-        if(F_ID MATCHES "\\$Id: [^ ]+ ([0-9]+) " AND CMAKE_MATCH_1 GREATER TR_SCM_REVISION)
-            set(TR_SCM_REVISION ${CMAKE_MATCH_1})
-        endif()
-    endforeach()
-endif()
+string(STRIP "${TR_VCS_REVISION}" TR_VCS_REVISION)
 
-if("${TR_SCM_REVISION}" STREQUAL "")
-    set(TR_SCM_REVISION 0)
+if(NOT "${TR_VCS_REVISION}" STREQUAL "")
+    file(WRITE "${TR_VCS_REVISION_FILE}" "${TR_VCS_REVISION}\n")
 else()
-    if(TR_SCM_REVISION_RELIABLE)
-        file(WRITE "${TR_SCM_REVISION_FILE}" "${TR_SCM_REVISION}")
-    else()
-        file(REMOVE "${TR_SCM_REVISION_FILE}")
-    endif()
+    set(TR_VCS_REVISION 0)
+    file(REMOVE "${TR_VCS_REVISION_FILE}")
 endif()
+
+string(SUBSTRING "${TR_VCS_REVISION}" 0 10 TR_VCS_REVISION)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -126,13 +107,7 @@ set(GTK_MINIMUM             3.4.0)
 set(GLIB_MINIMUM            2.32.0)
 set(GIO_MINIMUM             2.26.0)
 set(LIBAPPINDICATOR_MINIMUM 0.4.90)
-
-tr_github_upstream(EVENT2    transmission/libevent  c51b159cff 7be95856a39714dfd2218cb56415c990)
-tr_github_upstream(NATPMP    transmission/libnatpmp cf7f452d66 f1e7d5bf580972738d8ef21743d0adf7)
-tr_github_upstream(MINIUPNPC transmission/miniupnp  5de2bcb561 bdc5b64b9b8401d3524c50b9ec8173c1)
-tr_github_upstream(DHT       transmission/dht       cc379e406d 958253fafa01c59950d357c148aff090)
-tr_github_upstream(UTP       transmission/libutp    7c4f19abdf 8b92aa05abec5f6675cdde6477cd6f51)
-tr_github_upstream(B64       transmission/libb64    c1e3323498 10128cb30ad768d2c4caf627e0f69db3)
+set(QT5_MINIMUM             5.2)
 
 if(WIN32)
     foreach(L C CXX)
@@ -162,6 +137,7 @@ find_package(CURL ${CURL_MINIMUM} REQUIRED)
 
 find_package(ICONV)
 
+set(CRYPTO_PKG "")
 if(WITH_CRYPTO STREQUAL "AUTO" OR WITH_CRYPTO STREQUAL "openssl")
     tr_get_required_flag(WITH_CRYPTO OPENSSL_IS_REQUIRED)
     find_package(OpenSSL ${OPENSSL_MINIMUM} ${OPENSSL_IS_REQUIRED})
@@ -213,13 +189,13 @@ if(ENABLE_GTK)
 
     tr_fixup_auto_option(ENABLE_GTK GTK_FOUND GTK_IS_REQUIRED)
 
-    set(WITH_LIBAPPINDICATOR OFF)
-    if(ENABLE_GTK)
+    if(ENABLE_GTK AND WITH_LIBAPPINDICATOR)
+        tr_get_required_flag(WITH_LIBAPPINDICATOR LIBAPPINDICATOR_IS_REQUIRED)
         pkg_check_modules(LIBAPPINDICATOR appindicator3-0.1>=${LIBAPPINDICATOR_MINIMUM})
-        if(LIBAPPINDICATOR_FOUND)
-            set(WITH_LIBAPPINDICATOR ON)
-        endif()
+        tr_fixup_auto_option(WITH_LIBAPPINDICATOR LIBAPPINDICATOR_FOUND LIBAPPINDICATOR_IS_REQUIRED)
     endif()
+else()
+    set(WITH_LIBAPPINDICATOR OFF)
 endif()
 
 if(ENABLE_QT)
@@ -233,67 +209,44 @@ if(ENABLE_QT)
     set(ENABLE_QT_COM_INTEROP OFF)
     set(ENABLE_QT_DBUS_INTEROP OFF)
 
-    if(USE_QT5)
-        set(QT5_REQUIRED_MODULES Core Gui Widgets Network LinguistTools)
-        set(QT5_OPTIONAL_MODULES DBus AxContainer AxServer)
-        foreach(M ${QT5_REQUIRED_MODULES})
-            find_package(Qt5${M} QUIET)
-            if(Qt5${M}_FOUND)
-                if(NOT M STREQUAL "LinguistTools")
-                    list(APPEND QT_TARGETS Qt5::${M})
-                endif()
-            else()
-                set(QT_TARGETS)
-                break()
-            endif()
-        endforeach()
-        if(QT_TARGETS)
-            foreach(M ${QT5_OPTIONAL_MODULES})
-                find_package(Qt5${M} QUIET)
-                if(Qt5${M}_FOUND)
-                    list(APPEND QT_TARGETS Qt5::${M})
-                endif()
-            endforeach()
-            if(Qt5AxContainer_FOUND AND Qt5AxServer_FOUND)
-                set(ENABLE_QT_COM_INTEROP ON)
-            endif()
-            if(Qt5DBus_FOUND)
-                set(ENABLE_QT_DBUS_INTEROP ON)
-            endif()
-        endif()
-    else()
-        set(QT4_REQUIRED_MODULES QtCore QtGui QtNetwork)
-        set(QT4_OPTIONAL_MODULES QtDBus QAxContainer QAxServer)
-        find_package(Qt4 4.8.0 QUIET COMPONENTS ${QT4_REQUIRED_MODULES} OPTIONAL_COMPONENTS ${QT4_OPTIONAL_MODULES})
-        foreach(M ${QT4_REQUIRED_MODULES})
-            string(TOUPPER "${M}" M_UPPER)
-            if(QT_${M_UPPER}_FOUND)
-                list(APPEND QT_TARGETS Qt4::${M})
-            else()
-                set(QT_TARGETS)
-                break()
-            endif()
-        endforeach()
-        if (QT_TARGETS)
-            foreach(M ${QT4_OPTIONAL_MODULES})
-                string(TOUPPER "${M}" M_UPPER)
-                if(QT_${M_UPPER}_FOUND)
-                    list(APPEND QT_TARGETS Qt4::${M})
-                endif()
-            endforeach()
-            if(QT_QAXCONTAINER_FOUND AND QT_QAXSERVER_FOUND)
-                set(ENABLE_QT_COM_INTEROP ON)
-            endif()
-            if(QT_QTDBUS_FOUND)
-                set(ENABLE_QT_DBUS_INTEROP ON)
-            endif()
-        endif()
+    set(QT5_REQUIRED_MODULES Core Gui Widgets Network LinguistTools)
+    set(QT5_OPTIONAL_MODULES DBus AxContainer AxServer)
+
+    if(WIN32)
+        list(APPEND QT5_REQUIRED_MODULES WinExtras)
     endif()
 
-    if(ENABLE_QT_COM_INTEROP)
-        find_program(MIDL_EXECUTABLE midl)
-        if(NOT MIDL_EXECUTABLE)
-            set(ENABLE_QT_COM_INTEROP OFF)
+    foreach(M ${QT5_REQUIRED_MODULES})
+        find_package(Qt5${M} ${QT5_MINIMUM} QUIET)
+        if(Qt5${M}_FOUND)
+            if(NOT M STREQUAL "LinguistTools")
+                list(APPEND QT_TARGETS Qt5::${M})
+            endif()
+        else()
+            set(QT_TARGETS)
+            break()
+        endif()
+    endforeach()
+
+    if(QT_TARGETS)
+        foreach(M ${QT5_OPTIONAL_MODULES})
+            find_package(Qt5${M} ${QT5_MINIMUM} QUIET)
+            if(Qt5${M}_FOUND)
+                list(APPEND QT_TARGETS Qt5::${M})
+            endif()
+        endforeach()
+
+        if(Qt5AxContainer_FOUND AND Qt5AxServer_FOUND)
+            set(ENABLE_QT_COM_INTEROP ON)
+
+            find_program(MIDL_EXECUTABLE midl)
+            if(NOT MIDL_EXECUTABLE)
+                set(ENABLE_QT_COM_INTEROP OFF)
+            endif()
+        endif()
+
+        if(Qt5DBus_FOUND)
+            set(ENABLE_QT_DBUS_INTEROP ON)
         endif()
     endif()
 
@@ -308,6 +261,21 @@ if(ENABLE_QT)
     tr_fixup_auto_option(ENABLE_QT QT_FOUND QT_IS_REQUIRED)
 endif()
 
+if(ENABLE_MAC)
+    tr_get_required_flag(ENABLE_MAC MAC_IS_REQUIRED)
+
+    if(APPLE)
+        set(MAC_FOUND ON)
+    else()
+        set(MAC_FOUND OFF)
+        if(MAC_IS_REQUIRED)
+            message(SEND_ERROR "Mac build is impossible on non-Mac system.")
+        endif()
+    endif()
+
+    tr_fixup_auto_option(ENABLE_MAC MAC_FOUND MAC_IS_REQUIRED)
+endif()
+
 find_package(ZLIB ${ZLIB_MINIMUM})
 if(ZLIB_FOUND)
     add_definitions(-DHAVE_ZLIB)
@@ -316,31 +284,28 @@ endif()
 set(THIRD_PARTY_DIR ${CMAKE_SOURCE_DIR}/third-party)
 
 if(WIN32)
-    tr_add_external_auto_library(EVENT2 event
-        PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${THIRD_PARTY_DIR}/event2.cmake" "<SOURCE_DIR>/CMakeLists.txt"
-              COMMAND "${CMAKE_COMMAND}" -E chdir "<SOURCE_DIR>" patch -p1 -i "${THIRD_PARTY_DIR}/event2-01-win32.patch"
-              COMMAND "${CMAKE_COMMAND}" -E chdir "<SOURCE_DIR>" patch -p1 -i "${THIRD_PARTY_DIR}/event2-02-win32.patch")
+    tr_add_external_auto_library(EVENT2 libevent event)
 else()
-    tr_add_external_auto_library(EVENT2 event
+    set(EVENT2_CONFIGURE_FLAGS)
+    if(APPLE)
+        if(CRYPTO_PKG STREQUAL "openssl")
+            list(APPEND EVENT2_CONFIGURE_FLAGS "CPPFLAGS=-I${CRYPTO_INCLUDE_DIRS}")
+        else()
+            list(APPEND EVENT2_CONFIGURE_FLAGS "CPPFLAGS=-I${THIRD_PARTY_DIR}/openssl/include")
+        endif()
+    endif()
+    tr_add_external_auto_library(EVENT2 libevent event
         BUILD_IN_SOURCE 1
         CONFIGURE_COMMAND "<SOURCE_DIR>/autogen.sh"
-                  COMMAND "<SOURCE_DIR>/configure" "--prefix=<INSTALL_DIR>" "--disable-shared")
+                  COMMAND "<SOURCE_DIR>/configure" "--prefix=<INSTALL_DIR>" "--disable-shared" ${EVENT2_CONFIGURE_FLAGS})
 endif()
 
-tr_add_external_auto_library(NATPMP natpmp
-    PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${THIRD_PARTY_DIR}/natpmp.cmake" "<SOURCE_DIR>/CMakeLists.txt")
+tr_add_external_auto_library(NATPMP libnatpmp natpmp)
 if(NOT USE_SYSTEM_NATPMP)
     set(NATPMP_DEFINITIONS -DNATPMP_STATICLIB)
 endif()
 
-tr_add_external_auto_library(MINIUPNPC miniupnpc
-    PATCH_COMMAND "${CMAKE_COMMAND}" -E remove_directory "<SOURCE_DIR>/minissdpd"
-          COMMAND "${CMAKE_COMMAND}" -E remove_directory "<SOURCE_DIR>/miniupnpc-async"
-          COMMAND "${CMAKE_COMMAND}" -E remove_directory "<SOURCE_DIR>/miniupnpc-libevent"
-          COMMAND "${CMAKE_COMMAND}" -E remove_directory "<SOURCE_DIR>/miniupnpd"
-          COMMAND "${CMAKE_COMMAND}" -E remove "<SOURCE_DIR>/README"
-          COMMAND "${CMAKE_COMMAND}" -E copy_directory "<SOURCE_DIR>/miniupnpc" "<SOURCE_DIR>"
-          COMMAND "${CMAKE_COMMAND}" -E remove_directory "<SOURCE_DIR>/miniupnpc"
+tr_add_external_auto_library(MINIUPNPC miniupnpc miniupnpc
     CMAKE_ARGS
         -DUPNPC_BUILD_STATIC=ON
         -DUPNPC_BUILD_SHARED=OFF
@@ -352,22 +317,13 @@ if(NOT USE_SYSTEM_MINIUPNPC)
     set(MINIUPNPC_API_VERSION 12)
 endif()
 
-tr_add_external_auto_library(DHT dht
-    PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${THIRD_PARTY_DIR}/dht.cmake" "<SOURCE_DIR>/CMakeLists.txt")
+tr_add_external_auto_library(DHT dht dht)
 
 if(ENABLE_UTP)
-    tr_add_external_auto_library(UTP utp
-        PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${THIRD_PARTY_DIR}/utp.cmake" "<SOURCE_DIR>/CMakeLists.txt"
-              COMMAND "${CMAKE_COMMAND}" -E copy "${THIRD_PARTY_DIR}/utp_config.h" "<SOURCE_DIR>/utp_config.h"
-              COMMAND "${CMAKE_COMMAND}" -E chdir "<SOURCE_DIR>" patch -p1 --binary -i "${THIRD_PARTY_DIR}/utp-01-ticket-5002.patch"
-              COMMAND "${CMAKE_COMMAND}" -E chdir "<SOURCE_DIR>" patch -p1 --binary -i "${THIRD_PARTY_DIR}/utp-02-win32.patch"
-              COMMAND "${CMAKE_COMMAND}" -E chdir "<SOURCE_DIR>" patch -p1 --binary -i "${THIRD_PARTY_DIR}/utp-03-msvc14.patch")
+    tr_add_external_auto_library(UTP libutp utp)
 endif()
 
-tr_add_external_auto_library(B64 b64
-    PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${THIRD_PARTY_DIR}/b64.cmake" "<SOURCE_DIR>/CMakeLists.txt"
-          COMMAND "${CMAKE_COMMAND}" -E chdir "<SOURCE_DIR>" patch -p1 -i "${THIRD_PARTY_DIR}/b64-01-newline.patch"
-          COMMAND "${CMAKE_COMMAND}" -E chdir "<SOURCE_DIR>" patch -p1 -i "${THIRD_PARTY_DIR}/b64-02-unsigned-char.patch")
+tr_add_external_auto_library(B64 libb64 b64)
 
 if(WITH_INOTIFY)
     tr_get_required_flag(WITH_INOTIFY INOTIFY_IS_REQUIRED)
@@ -397,9 +353,7 @@ endif()
 
 if(WITH_SYSTEMD)
     tr_get_required_flag(WITH_SYSTEMD SYSTEMD_IS_REQUIRED)
-
-    pkg_check_modules(SYSTEMD ${SYSTEMD_IS_REQUIRED} libsystemd)
-
+    find_package(SYSTEMD)
     tr_fixup_auto_option(WITH_SYSTEMD SYSTEMD_FOUND SYSTEMD_IS_REQUIRED)
 endif()
 
@@ -544,25 +498,48 @@ if(HAVE_LIBM)
     set(LIBM_LIBRARY m)
 endif()
 
+set(TR_NETWORK_LIBRARIES)
+if(WIN32)
+    list(APPEND TR_NETWORK_LIBRARIES iphlpapi ws2_32)
+else()
+    tr_select_library("c;socket;net" socket "" LIB)
+    if(NOT LIB MATCHES "^(|c)$")
+        list(APPEND TR_NETWORK_LIBRARIES ${LIB})
+    endif()
+
+    tr_select_library("c;nsl;bind" gethostbyname "" LIB)
+    if(NOT LIB MATCHES "^(|c)$")
+        list(APPEND TR_NETWORK_LIBRARIES ${LIB})
+    endif()
+endif()
+
 if(ENABLE_TESTS)
     enable_testing()
-    include(CTest)
 endif()
+
+function(tr_install_web DST_DIR)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/web DESTINATION ${DST_DIR}
+        PATTERN *.am EXCLUDE
+        PATTERN *.in EXCLUDE
+        PATTERN *.scss EXCLUDE)
+endfunction()
 
 add_subdirectory(libtransmission)
 
-foreach(P daemon cli utils gtk qt)
+set(MAC_PROJECT_DIR macosx)
+
+foreach(P daemon cli utils gtk qt mac)
     string(TOUPPER "${P}" P_ID)
     if(ENABLE_${P_ID})
+        if(DEFINED ${P_ID}_PROJECT_DIR)
+            set(P ${${P_ID}_PROJECT_DIR})
+        endif()
         add_subdirectory(${P})
     endif()
 endforeach()
 
 if(ENABLE_DAEMON OR ENABLE_GTK OR ENABLE_QT)
-    install(DIRECTORY web DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${TR_NAME}
-        PATTERN *.am EXCLUDE
-        PATTERN *.in EXCLUDE
-        PATTERN *.scss EXCLUDE)
+    tr_install_web(${CMAKE_INSTALL_DATAROOTDIR}/${TR_NAME})
 endif()
 
 if(ENABLE_GTK AND ENABLE_NLS)
@@ -571,17 +548,17 @@ if(ENABLE_GTK AND ENABLE_NLS)
 endif()
 
 if(INSTALL_DOC)
-    install(FILES AUTHORS COPYING NEWS README extras/rpc-spec.txt extras/send-email-when-torrent-done.sh DESTINATION ${CMAKE_INSTALL_DOCDIR})
+    install(FILES AUTHORS COPYING NEWS README.md extras/rpc-spec.txt extras/send-email-when-torrent-done.sh DESTINATION ${CMAKE_INSTALL_DOCDIR})
 endif()
 
-if(MSVC AND ENABLE_DAEMON AND ENABLE_QT AND ENABLE_UTILS AND USE_QT5 AND WITH_CRYPTO STREQUAL "openssl")
+if(MSVC AND ENABLE_DAEMON AND ENABLE_QT AND ENABLE_UTILS AND WITH_CRYPTO STREQUAL "openssl")
     add_subdirectory(dist/msi)
 endif()
 
 set(CPACK_SOURCE_GENERATOR TBZ2)
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${TR_NAME}-${TR_USER_AGENT_PREFIX}")
 set(CPACK_SOURCE_IGNORE_FILES
-    \\\\.svn
+    \\\\.git
 )
 
 include(CPack)

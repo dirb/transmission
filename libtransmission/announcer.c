@@ -4,14 +4,13 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #include <assert.h>
 #include <limits.h> /* INT_MAX */
 #include <stdio.h>
 #include <stdlib.h> /* qsort () */
-#include <string.h> /* strcmp (), memcpy () */
+#include <string.h> /* strcmp (), memcpy (), strncmp () */
 
 #include <event2/buffer.h>
 #include <event2/event.h> /* evtimer */
@@ -1220,9 +1219,9 @@ announce_request_delegate (tr_announcer               * announcer,
              request->peer_id);
 #endif
 
-    if (memcmp (request->url, "http", 4) == 0)
+    if (strncmp (request->url, "http", 4) == 0)
         tr_tracker_http_announce (session, request, callback, callback_data);
-    else if (memcmp (request->url, "udp://", 6) == 0)
+    else if (strncmp (request->url, "udp://", 6) == 0)
         tr_tracker_udp_announce (session, request, callback, callback_data);
     else
         tr_logAddError ("Unsupported url: %s", request->url);
@@ -1399,9 +1398,9 @@ scrape_request_delegate (tr_announcer             * announcer,
 {
     tr_session * session = announcer->session;
 
-    if (memcmp (request->url, "http", 4) == 0)
+    if (strncmp (request->url, "http", 4) == 0)
         tr_tracker_http_scrape (session, request, callback, callback_data);
-    else if (memcmp (request->url, "udp://", 6) == 0)
+    else if (strncmp (request->url, "udp://", 6) == 0)
         tr_tracker_udp_scrape (session, request, callback, callback_data);
     else
         tr_logAddError ("Unsupported url: %s", request->url);

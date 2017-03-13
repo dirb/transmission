@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #include <cassert>
@@ -12,6 +11,7 @@
 #include <QtGui>
 #include <QCheckBox>
 #include <QIcon>
+#include <QPainter>
 #include <QProxyStyle>
 #include <QLabel>
 #include <QFileDialog>
@@ -86,6 +86,45 @@ MainWindow::getStockIcon (const QString& name, int fallback)
   return icon;
 }
 
+QIcon
+MainWindow::getStockIcon (const QString& name, int fallback, const QStringList& emblemNames)
+{
+  QIcon baseIcon = getStockIcon (name, fallback);
+  if (baseIcon.isNull ())
+    return baseIcon;
+
+  QIcon emblemIcon;
+  for (const QString& emblemName: emblemNames)
+    {
+      emblemIcon = QIcon::fromTheme (emblemName);
+      if (!emblemIcon.isNull ())
+        break;
+    }
+
+  if (emblemIcon.isNull ())
+    return baseIcon;
+
+  QIcon icon;
+
+  for (const QSize& size: baseIcon.availableSizes ())
+    {
+      const QSize emblemSize = size / 2;
+      const QRect emblemRect = QStyle::alignedRect (layoutDirection (), Qt::AlignBottom | Qt::AlignRight, emblemSize, QRect (QPoint (0, 0), size));
+
+      QPixmap pixmap = baseIcon.pixmap (size);
+      QPixmap emblemPixmap = emblemIcon.pixmap (emblemSize);
+
+      {
+        QPainter painter(&pixmap);
+        painter.drawPixmap (emblemRect, emblemPixmap, emblemPixmap.rect ());
+      }
+
+      icon.addPixmap (pixmap);
+    }
+
+  return icon;
+}
+
 MainWindow::MainWindow (Session& session, Prefs& prefs, TorrentModel& model, bool minimized):
   mySession (session),
   myPrefs (prefs),
@@ -113,16 +152,13 @@ MainWindow::MainWindow (Session& session, Prefs& prefs, TorrentModel& model, boo
 
   ui.setupUi (this);
 
-  QStyle * style = this->style ();
-
-  int i = style->pixelMetric (QStyle::PM_SmallIconSize, 0, this);
-  const QSize smallIconSize (i, i);
-
   ui.listView->setStyle (new ListViewProxyStyle);
   ui.listView->setAttribute (Qt::WA_MacShowFocusRect, false);
 
   // icons
   ui.action_OpenFile->setIcon (getStockIcon (QLatin1String ("document-open"), QStyle::SP_DialogOpenButton));
+  ui.action_AddURL->setIcon (getStockIcon (QLatin1String ("document-open"), QStyle::SP_DialogOpenButton,
+                                           QStringList () << QLatin1String ("emblem-web") << QLatin1String ("applications-internet")));
   ui.action_New->setIcon (getStockIcon (QLatin1String ("document-new"), QStyle::SP_DesktopIcon));
   ui.action_Properties->setIcon (getStockIcon (QLatin1String ("document-properties"), QStyle::SP_DesktopIcon));
   ui.action_OpenFolder->setIcon (getStockIcon (QLatin1String ("folder-open"), QStyle::SP_DirOpenIcon));
@@ -622,7 +658,7 @@ MainWindow::openStats ()
 void
 MainWindow::openDonate ()
 {
-  QDesktopServices::openUrl (QUrl (QLatin1String ("http://www.transmissionbt.com/donate.php")));
+  QDesktopServices::openUrl (QUrl (QLatin1String ("https://transmissionbt.com/donate/")));
 }
 
 void
@@ -634,7 +670,7 @@ MainWindow::openAbout ()
 void
 MainWindow::openHelp ()
 {
-  QDesktopServices::openUrl (QUrl (QString::fromLatin1 ("http://www.transmissionbt.com/help/gtk/%1.%2x").
+  QDesktopServices::openUrl (QUrl (QString::fromLatin1 ("https://transmissionbt.com/help/gtk/%1.%2x").
     arg (MAJOR_VERSION).arg (MINOR_VERSION / 10)));
 }
 

@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Copyright (c) 2010-2012 Transmission authors and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -32,14 +30,14 @@
 @interface InfoTrackersViewController : NSViewController <InfoViewController>
 {
     NSArray * fTorrents;
-    
+
     BOOL fSet;
-    
+
     NSMutableArray * fTrackers;
-    
+
     IBOutlet TrackerTableView * fTrackerTable;
     TrackerCell * fTrackerCell;
-    
+
     IBOutlet NSSegmentedControl * fTrackerAddRemoveControl;
 }
 

@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Copyright (c) 2008-2012 Transmission authors and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -36,24 +34,24 @@
     IBOutlet NSButton * fStartCheck, * fDeleteCheck;
     IBOutlet NSPopUpButton * fGroupPopUp, * fPriorityPopUp;
     IBOutlet NSProgressIndicator * fVerifyIndicator;
-    
+
     IBOutlet NSTextField * fFileFilterField;
     IBOutlet NSButton * fCheckAllButton, *fUncheckAllButton;
-    
+
     IBOutlet FileOutlineController * fFileController;
     IBOutlet NSScrollView * fFileScrollView;
-    
+
     Controller * fController;
-    
+
     Torrent * fTorrent;
     NSString * fDestination, * fTorrentFile;
     BOOL fLockDestination;
-    
+
     BOOL fDeleteTorrentEnableInitially, fCanToggleDelete;
     NSInteger fGroupValue;
-    
+
     NSTimer * fTimer;
-	
+
     TorrentDeterminationType fGroupValueDetermination;
 }
 

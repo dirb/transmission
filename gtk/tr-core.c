@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Copyright (c) Transmission authors and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -1354,6 +1352,19 @@ gtr_core_torrents_added (TrCore * self)
 {
   gtr_core_update (self);
   core_emit_err (self, TR_CORE_ERR_NO_MORE_TORRENTS, NULL);
+}
+
+void
+gtr_core_torrent_changed (TrCore * self, int id)
+{
+  GtkTreeIter iter;
+  GtkTreeModel * model = core_raw_model (self);
+
+  if (find_row_from_torrent_id (model, id, &iter))
+    {
+      GtkTreePath * path = gtk_tree_model_get_path (model, &iter);
+      gtk_tree_model_row_changed (model, path, &iter);
+    }
 }
 
 void

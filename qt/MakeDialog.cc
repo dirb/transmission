@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #include <QDir>
@@ -198,7 +197,7 @@ MakeDialog::onSourceChanged ()
   QString text;
   if (myBuilder == nullptr)
     {
-      text = tr ("<i>No source selected<i>");
+      text = tr ("<i>No source selected</i>");
     }
   else
     {

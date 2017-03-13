@@ -4,11 +4,11 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QStandardItemModel>
 
 #include "Application.h"
@@ -17,7 +17,6 @@
 #include "FilterBar.h"
 #include "FilterBarComboBox.h"
 #include "FilterBarComboBoxDelegate.h"
-#include "FilterBarLineEdit.h"
 #include "Prefs.h"
 #include "Torrent.h"
 #include "TorrentFilter.h"
@@ -148,7 +147,7 @@ FilterBar::refreshTrackers ()
       const int count = torrentsPerHost[name];
       row->setData (count, FilterBarComboBox::CountRole);
       row->setData (getCountString (count), FilterBarComboBox::CountStringRole);
-      row->setData (favicons.findFromHost (host), Qt::DecorationRole);
+      row->setData (QIcon (favicons.findFromHost (host)), Qt::DecorationRole);
     }
 
   // rows to remove
@@ -183,7 +182,7 @@ FilterBar::refreshTrackers ()
       const int count = torrentsPerHost[host];
       row->setData (count, FilterBarComboBox::CountRole);
       row->setData (getCountString (count), FilterBarComboBox::CountStringRole);
-      row->setData (favicons.findFromHost (host), Qt::DecorationRole);
+      row->setData (QIcon (favicons.findFromHost (host)), Qt::DecorationRole);
       row->setData (host, TrackerRole);
       myTrackerModel->insertRow (i, row);
       anyAdded = true;
@@ -242,7 +241,9 @@ FilterBar::FilterBar (Prefs& prefs, const TorrentModel& torrents, const TorrentF
 
   h->addStretch ();
 
-  myLineEdit = new FilterBarLineEdit (this);
+  myLineEdit = new QLineEdit (this);
+  myLineEdit->setClearButtonEnabled (true);
+  myLineEdit->setPlaceholderText (tr ("Search..."));
   myLineEdit->setMaximumWidth (250);
   h->addWidget (myLineEdit, 1);
   connect (myLineEdit, SIGNAL (textChanged (QString)), this, SLOT (onTextChanged (QString)));

@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Copyright (c) 2007-2012 Transmission authors and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -28,7 +26,7 @@
 @interface DragOverlayWindow : NSWindow
 {
     tr_session * fLib;
-    
+
     NSViewAnimation * fFadeInAnimation, * fFadeOutAnimation;
 }
 

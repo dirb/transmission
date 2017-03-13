@@ -46,6 +46,7 @@ set(${PROJECT_NAME}_SOURCES
     rpcimpl.c
     rpc-server.c
     session.c
+    session-id.c
     stats.c
     torrent.c
     torrent-ctor.c
@@ -105,6 +106,7 @@ set(${PROJECT_NAME}_PUBLIC_HEADERS
     makemeta.h
     quark.h
     rpcimpl.h
+    session-id.h
     tr-getopt.h
     transmission.h
     utils.h
@@ -194,6 +196,14 @@ if(USE_SYSTEM_B64)
     add_definitions(-DUSE_SYSTEM_B64)
 endif()
 
+if(CYASSL_IS_WOLFSSL)
+    add_definitions(-DCYASSL_IS_WOLFSSL)
+endif()
+
+if(POLARSSL_IS_MBEDTLS)
+    add_definitions(-DPOLARSSL_IS_MBEDTLS)
+endif()
+
 include_directories(
     ${PROJECT_SOURCE_DIR}
     ${PROJECT_BINARY_DIR}
@@ -244,14 +254,11 @@ target_link_libraries(${TR_NAME}
     ${B64_LIBRARIES}
     ${LIBINTL_LIBRARY}
     ${LIBM_LIBRARY}
+    ${TR_NETWORK_LIBRARIES}
 )
 
 if(ICONV_FOUND)
     target_link_libraries(${TR_NAME} ${ICONV_LIBRARIES})
-endif()
-
-if(WIN32)
-    target_link_libraries(${TR_NAME} iphlpapi ws2_32)
 endif()
 
 if(ENABLE_TESTS)

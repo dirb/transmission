@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #include <cstring>
@@ -89,14 +88,8 @@ RpcClient::isLocal () const
   if (mySession != 0)
     return true;
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-  if (myUrl.host () == QLatin1String ("127.0.0.1") ||
-      myUrl.host ().compare (QLatin1String ("localhost"), Qt::CaseInsensitive) == 0)
-    return true;
-#else
   if (QHostAddress (myUrl.host ()).isLoopback ())
     return true;
-#endif
 
   return false;
 }

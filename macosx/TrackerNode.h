@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Copyright (c) 2009-2012 Transmission authors and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -30,7 +28,7 @@
 @interface TrackerNode : NSObject
 {
     tr_tracker_stat fStat;
-    
+
     Torrent * fTorrent;
 }
 

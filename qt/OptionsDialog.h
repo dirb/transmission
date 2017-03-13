@@ -4,7 +4,6 @@
  * It may be used under the GNU GPL versions 2 or 3
  * or any future license endorsed by Mnemosyne LLC.
  *
- * $Id$
  */
 
 #pragma once
@@ -44,6 +43,7 @@ class OptionsDialog: public BaseDialog
 
   private:
     void reload ();
+    void updateWidgetsLocality ();
     void clearInfo ();
     void clearVerify ();
 
@@ -57,12 +57,15 @@ class OptionsDialog: public BaseDialog
     void onSourceChanged ();
     void onDestinationChanged ();
 
+    void onSessionUpdated ();
+
   private:
     Session& mySession;
     AddData myAdd;
 
     Ui::OptionsDialog ui;
 
+    bool myIsLocal;
     QDir myLocalDestination;
     bool myHaveInfo;
     tr_info myInfo;
