@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <QSettings>
 #include <QWidgetList>
 
 #include "BaseDialog.h"
@@ -43,4 +44,6 @@ private:
 
     QWidgetList myRemoteWidgets;
     QWidgetList myAuthWidgets;
+
+    QSettings mySettings;
 };
